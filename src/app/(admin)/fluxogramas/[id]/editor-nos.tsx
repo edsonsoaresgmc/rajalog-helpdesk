@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { CanvasFluxo } from "./canvas-fluxo";
 
 const TIPOS: { valor: NoInput["tipo"]; rotulo: string; icone: string }[] = [
   { valor: "mensagem", rotulo: "Mensagem", icone: "💬" },
@@ -64,6 +65,8 @@ export function EditorNos({ fluxoId, fluxoStatus, nosIniciais }: Props) {
 
   function adicionar(tipo: NoInput["tipo"]) {
     const codigo = novoCodigo(tipo);
+    const col = nos.length % 4;
+    const row = Math.floor(nos.length / 4);
     const nova: NoInput = {
       codigo,
       nome:
@@ -72,6 +75,7 @@ export function EditorNos({ fluxoId, fluxoStatus, nosIniciais }: Props) {
           : TIPOS.find((t) => t.valor === tipo)?.rotulo ?? "Novo nó",
       tipo,
       opcoes: [],
+      posicao: { x: 40 + col * 260, y: 40 + row * 140 },
     };
     const idxFim = nos.findIndex((n) => n.tipo === "fim");
     let novos: NoInput[];
@@ -88,6 +92,11 @@ export function EditorNos({ fluxoId, fluxoStatus, nosIniciais }: Props) {
 
   function atualizar(idx: number, patch: Partial<NoInput>) {
     setNos(nos.map((n, i) => (i === idx ? { ...n, ...patch } : n)));
+    setSujo(true);
+  }
+
+  function moverPosicao(idx: number, x: number, y: number) {
+    setNos(nos.map((n, i) => (i === idx ? { ...n, posicao: { x, y } } : n)));
     setSujo(true);
   }
 
@@ -207,81 +216,23 @@ export function EditorNos({ fluxoId, fluxoStatus, nosIniciais }: Props) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_420px]">
-        {/* Lista de nós */}
-        <div className="surface p-4">
-          {nos.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
+        {/* Canvas visual do fluxo */}
+        {nos.length === 0 ? (
+          <div className="surface flex h-[560px] items-center justify-center">
+            <p className="text-sm text-muted-foreground">
               Adicione nós usando os botões acima.
             </p>
-          ) : (
-            <ol className="grid gap-2">
-              {nos.map((no, idx) => {
-                const t = TIPOS.find((x) => x.valor === no.tipo);
-                const icone = no.tipo === "inicio" ? "🚀" : t?.icone ?? "•";
-                const rotulo = no.tipo === "inicio" ? "Início" : t?.rotulo ?? no.tipo;
-                return (
-                  <li key={idx}>
-                    <button
-                      type="button"
-                      onClick={() => setSelecionado(idx)}
-                      className={`w-full rounded-lg border p-3 text-left transition-colors ${
-                        selecionado === idx
-                          ? "border-primary/60 bg-primary/5"
-                          : "border-border/60 hover:bg-muted/60"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-base">{icone}</span>
-                            <span className="font-medium">{no.nome}</span>
-                            <code className="text-[10px] text-muted-foreground">
-                              {no.codigo}
-                            </code>
-                          </div>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {rotulo}
-                            {no.setor_destino ? ` · setor: ${no.setor_destino}` : ""}
-                            {no.prioridade ? ` · prioridade ${no.prioridade}` : ""}
-                          </p>
-                        </div>
-                        <div
-                          className="flex items-center gap-1 text-sm"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => mover(idx, -1)}
-                            className="text-muted-foreground hover:text-foreground"
-                            aria-label="Mover para cima"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => mover(idx, 1)}
-                            className="text-muted-foreground hover:text-foreground"
-                            aria-label="Mover para baixo"
-                          >
-                            ↓
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => remover(idx)}
-                            className="text-destructive/70 hover:text-destructive"
-                            aria-label="Remover"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-        </div>
+          </div>
+        ) : (
+          <CanvasFluxo
+            nos={nos}
+            selecionado={selecionado}
+            onSelecionar={setSelecionado}
+            onMoverPosicao={moverPosicao}
+            onMover={mover}
+            onRemover={remover}
+          />
+        )}
 
         {/* Propriedades do nó selecionado */}
         <aside className="surface p-4">

@@ -31,12 +31,12 @@ export default async function FluxoEditorPage({
   const { data: nosRaw } = await supabase
     .from("bot_nos")
     .select(
-      "codigo, nome, tipo, mensagem, opcoes, campo_contexto, setor_destino, chamado_tipo, prioridade, destino_padrao_codigo"
+      "codigo, nome, tipo, mensagem, opcoes, campo_contexto, setor_destino, chamado_tipo, prioridade, destino_padrao_codigo, posicao"
     )
     .eq("fluxo_id", id)
     .order("ordem");
 
-  const nos: NoInput[] = (nosRaw ?? []).map((n) => ({
+  const nos: NoInput[] = (nosRaw ?? []).map((n, idx) => ({
     codigo: n.codigo,
     nome: n.nome,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,6 +50,8 @@ export default async function FluxoEditorPage({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prioridade: n.prioridade as any,
     destino_padrao_codigo: n.destino_padrao_codigo,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    posicao: (n.posicao as any) ?? { x: 40 + idx * 260, y: 40 },
   }));
 
   return (

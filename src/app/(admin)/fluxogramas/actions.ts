@@ -158,6 +158,7 @@ export type NoInput = {
   chamado_tipo?: string | null;
   prioridade?: "baixa" | "normal" | "alta" | "urgente" | null;
   destino_padrao_codigo?: string | null;
+  posicao?: { x: number; y: number };
 };
 
 const AUTO_SEQUENCIAL: NoInput["tipo"][] = [
@@ -226,6 +227,7 @@ export async function salvarNos(
     chamado_tipo: n.chamado_tipo || null,
     prioridade: n.prioridade || null,
     destino_padrao_codigo: n.destino_padrao_codigo || null,
+    posicao: n.posicao ?? { x: 40 + idx * 260, y: 40 },
   }));
 
   const { data: inseridos, error } = await supabase
