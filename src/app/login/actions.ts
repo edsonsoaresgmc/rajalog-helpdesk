@@ -24,7 +24,9 @@ export async function signIn(
   });
 
   if (error) {
-    return { error: "Credenciais inválidas. Verifique e tente novamente." };
+    // Temporário para diagnóstico do primeiro login — trocar de volta para
+    // mensagem genérica depois de confirmar o fluxo de autenticação.
+    return { error: `[${error.code ?? error.status ?? "erro"}] ${error.message}` };
   }
 
   revalidatePath("/", "layout");
