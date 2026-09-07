@@ -7,7 +7,6 @@ import {
   uploadDocumento,
   excluirDocumento,
   urlAssinada,
-  TIPOS_DOCUMENTO,
   type UploadState,
 } from "../actions";
 import { Button } from "@/components/ui/button";
@@ -28,9 +27,11 @@ const inicial: UploadState = { error: null };
 export function DocumentosClient({
   veiculoId,
   documentosIniciais,
+  tiposDocumento,
 }: {
   veiculoId: string;
   documentosIniciais: Documento[];
+  tiposDocumento: string[];
 }) {
   const router = useRouter();
   const acao = uploadDocumento.bind(null, veiculoId);
@@ -137,7 +138,7 @@ export function DocumentosClient({
               <option value="" disabled>
                 Selecione...
               </option>
-              {TIPOS_DOCUMENTO.map((t) => (
+              {tiposDocumento.map((t) => (
                 <option key={t} value={t}>
                   {t.replace(/_/g, " ")}
                 </option>

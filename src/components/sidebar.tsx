@@ -13,7 +13,9 @@ interface NavItem {
 
 const ITENS: NavItem[] = [
   { href: "/fluxogramas", label: "Fluxogramas do bot", icon: "🔀" },
+  { href: "/motoristas", label: "Motoristas", icon: "🧑‍✈️" },
   { href: "/veiculos", label: "Veículos e documentos", icon: "🚚" },
+  { href: "/cadastros", label: "Cadastros", icon: "📋" },
 ];
 
 export function Sidebar() {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default async function VeiculosPage() {
   const supabase = await createClient();
@@ -16,6 +17,11 @@ export default async function VeiculosPage() {
         eyebrow="Bot Raja Log — Frota"
         title="Veículos e documentos"
         description="Envie os documentos (CRLV, ANTT, CIV...) de cada veículo — o bot usa esses arquivos para responder aos motoristas no Módulo 1 (Documentos do Veículo)."
+        actions={
+          <Button nativeButton={false} render={<Link href="/veiculos/novo" />}>
+            ＋ Novo veículo
+          </Button>
+        }
       />
 
       {error && (

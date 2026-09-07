@@ -1,21 +1,84 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 
-export const TIPOS_DOCUMENTO = [
-  "CRLV",
-  "ANTT",
-  "CIV",
-  "Licenca_Operacional",
-  "Licenca_Ambiental",
-  "CTe",
-  "MDFe",
-  "Outro",
-] as const;
-
 const BUCKET = "documentos-veiculos";
+
+export type VeiculoState = { error: string | null };
+
+function extrairCamposVeiculo(formData: FormData) {
+  return {
+    placa: String(formData.get("placa") ?? "").trim().toUpperCase(),
+    frota: String(formData.get("frota") ?? "").trim() || null,
+    tipo: String(formData.get("tipo") ?? "").trim() || null,
+    marca: String(formData.get("marca") ?? "").trim() || null,
+    modelo: String(formData.get("modelo") ?? "").trim() || null,
+    ano: formData.get("ano") ? Number(formData.get("ano")) : null,
+    status: String(formData.get("status") ?? "ativo"),
+  };
+}
+
+export async function criarVeiculo(
+  _prev: VeiculoState,
+  formData: FormData
+): Promise<VeiculoState> {
+  await requireAdmin();
+  const campos = extrairCamposVeiculo(formData);
+  if (!campos.placa) return { error: "Informe a placa." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("veiculos")
+    .insert(campos)
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    return {
+      error: error?.message.includes("duplicate")
+        ? "Já existe um veículo com essa placa."
+        : (error?.message ?? "Erro ao criar."),
+    };
+  }
+
+  revalidatePath("/veiculos");
+  redirect(`/veiculos/${data.id}`);
+}
+
+export async function atualizarVeiculo(
+  veiculoId: string,
+  _prev: VeiculoState,
+  formData: FormData
+): Promise<VeiculoState> {
+  await requireAdmin();
+  const campos = extrairCamposVeiculo(formData);
+  if (!campos.placa) return { error: "Informe a placa." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("veiculos")
+    .update(campos)
+    .eq("id", veiculoId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/veiculos");
+  revalidatePath(`/veiculos/${veiculoId}`);
+  redirect(`/veiculos/${veiculoId}`);
+}
+
+export async function excluirVeiculo(
+  veiculoId: string
+): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  const supabase = await createClient();
+  const { error } = await supabase.from("veiculos").delete().eq("id", veiculoId);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/veiculos");
+  return { ok: true };
+}
 
 export type UploadState = { error: string | null; ok?: boolean };
 
